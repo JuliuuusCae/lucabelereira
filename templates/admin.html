@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lú Manicure — Painel Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="admin-body">
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-diamond">◆</span>
+      <div>
+        <span class="sidebar-title">Lú Manicure</span>
+        <span class="sidebar-sub">Painel Admin</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#agendamentos" class="sidebar-link active">📋 Agendamentos</a>
+      <a href="#horarios" class="sidebar-link">🕐 Horários</a>
+      <a href="#servicos" class="sidebar-link">💅 Serviços & Preços</a>
+    </nav>
+    <a href="/logout" class="sidebar-logout">Sair →</a>
+  </aside>
+
+  <main class="admin-main">
+
+    <!-- FLASH -->
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="flash-container" style="margin-bottom:20px;">
+          {% for msg in messages %}
+            <div class="flash-msg">{{ msg }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- AGENDAMENTOS -->
+    <section class="admin-section" id="agendamentos">
+      <div class="admin-section-header">
+        <h2>📋 Agendamentos <span class="badge">{{ agendamentos|length }}</span></h2>
+      </div>
+
+      {% if agendamentos %}
+      <div class="table-wrapper">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nome</th>
+              <th>Telefone</th>
+              <th>Serviço</th>
+              <th>Data</th>
+              <th>Horário</th>
+              <th>Ação</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ag in agendamentos %}
+            <tr>
+              <td class="td-id">{{ loop.index }}</td>
+              <td class="td-nome">{{ ag.nome }}</td>
+              <td>{{ ag.telefone }}</td>
+              <td><span class="tag-servico">{{ ag.servico.nome }}</span></td>
+              <td>{{ ag.data }}</td>
+              <td><strong>{{ ag.hora }}</strong></td>
+              <td>
+                <form action="/admin/agendamento/delete/{{ ag.id }}" method="POST" onsubmit="return confirm('Remover este agendamento?')">
+                  <button type="submit" class="btn-danger">Remover</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        <div class="empty-state">
+          <p>Nenhum agendamento ainda. 💅</p>
+        </div>
+      {% endif %}
+    </section>
+
+    <!-- HORÁRIOS -->
+    <section class="admin-section" id="horarios">
+      <div class="admin-section-header">
+        <h2>🕐 Controle de Horários</h2>
+      </div>
+
+      <div class="horarios-admin-grid">
+        {% for h in horarios %}
+        <div class="horario-admin-card {% if not h.ativo %}inativo{% endif %}">
+          <span class="horario-hora">{{ h.hora }}</span>
+          <div class="horario-actions">
+            <form action="/admin/horario/toggle/{{ h.id }}" method="POST">
+              <button type="submit" class="btn-toggle {% if h.ativo %}btn-on{% else %}btn-off{% endif %}">
+                {{ 'Ativo' if h.ativo else 'Inativo' }}
+              </button>
+            </form>
+            <form action="/admin/horario/delete/{{ h.id }}" method="POST" onsubmit="return confirm('Remover este horário?')">
+              <button type="submit" class="btn-danger-sm">✕</button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="add-card">
+        <h3>Adicionar horário</h3>
+        <form action="/admin/horario/add" method="POST" class="add-form">
+          <input type="time" name="nova_hora" required />
+          <button type="submit" class="btn-primary">+ Adicionar</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- SERVIÇOS -->
+    <section class="admin-section" id="servicos">
+      <div class="admin-section-header">
+        <h2>💅 Serviços & Preços</h2>
+      </div>
+
+      <div class="servicos-admin-grid">
+        {% for s in servicos %}
+        <div class="servico-admin-card">
+          <h4>{{ s.nome }}</h4>
+          <form action="/admin/servico/preco/{{ s.id }}" method="POST" class="preco-form">
+            <div class="preco-input-group">
+              <span class="preco-prefix">R$</span>
+              <input type="text" name="preco" value="{{ s.preco }}" class="preco-input" required />
+            </div>
+            <button type="submit" class="btn-save">Salvar</button>
+          </form>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // Sidebar active state
+    const links = document.querySelectorAll('.sidebar-link');
+    const sections = document.querySelectorAll('.admin-section');
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(s => {
+        if (window.scrollY >= s.offsetTop - 100) current = s.id;
+      });
+      links.forEach(l => {
+        l.classList.remove('active');
+        if (l.getAttribute('href') === '#' + current) l.classList.add('active');
+      });
+    });
+  </script>
+
+</body>
+</html>

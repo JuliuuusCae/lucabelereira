@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lú Manicure — Agendamento</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo-area">
+        <span class="logo-diamond">◆</span>
+        <div>
+          <h1 class="logo-title">Lú Manicure</h1>
+          <p class="logo-sub">Salão de Beleza & Estética</p>
+        </div>
+      </div>
+      <nav class="header-nav">
+        <a href="#agendamento" class="nav-link">Agendar</a>
+        <a href="#servicos-section" class="nav-link">Serviços</a>
+        <a href="#contato" class="nav-link">Contato</a>
+        <a href="/login" class="nav-link nav-admin">Admin</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <p class="hero-eyebrow">✦ Beleza com elegância ✦</p>
+      <h2 class="hero-title">Transforme seu<br><em>visual com arte</em></h2>
+      <p class="hero-desc">Agende seu horário de forma simples e rápida.<br>Cuidado, carinho e sofisticação em cada detalhe.</p>
+      <a href="#agendamento" class="btn-hero">Agendar agora</a>
+    </div>
+    <div class="hero-deco"></div>
+  </section>
+
+  <!-- FLASH MESSAGES -->
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="flash-container">
+        {% for msg in messages %}
+          <div class="flash-msg">{{ msg }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- AGENDAMENTO FORM -->
+  <section class="section" id="agendamento">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Reserve seu momento</span>
+        <h2 class="section-title">Faça seu <em>agendamento</em></h2>
+        <p class="section-desc">Preencha os campos abaixo e escolha o melhor horário para você.</p>
+      </div>
+
+      <div class="form-card">
+        <form action="/agendar" method="POST" id="agendamento-form">
+          <div class="form-grid">
+
+            <div class="form-group">
+              <label for="nome">Nome completo</label>
+              <input type="text" id="nome" name="nome" placeholder="Seu nome" required />
+            </div>
+
+            <div class="form-group">
+              <label for="telefone">Telefone / WhatsApp</label>
+              <input type="tel" id="telefone" name="telefone" placeholder="(00) 00000-0000" required />
+            </div>
+
+            <div class="form-group full">
+              <label for="servico_id">Serviço desejado</label>
+              <select id="servico_id" name="servico_id" required>
+                <option value="">Selecione um serviço...</option>
+                {% for s in servicos %}
+                  <option value="{{ s.id }}">{{ s.nome }} — R$ {{ s.preco }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="data">Data</label>
+              <input type="date" id="data" name="data" min="{{ hoje }}" required />
+            </div>
+
+            <div class="form-group">
+              <label>Horário disponível</label>
+              <div id="horarios-wrapper">
+                <p class="horario-hint">Selecione uma data primeiro.</p>
+              </div>
+              <input type="hidden" name="hora" id="hora-hidden" required />
+            </div>
+
+          </div>
+
+          <div class="form-footer">
+            <button type="submit" class="btn-primary">✦ Confirmar agendamento</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVIÇOS -->
+  <section class="section section-dark" id="servicos-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">O que oferecemos</span>
+        <h2 class="section-title">Nossos <em>serviços</em></h2>
+      </div>
+      <div class="servicos-grid">
+        {% for s in servicos %}
+        <div class="servico-card">
+          <div class="servico-icon">✦</div>
+          <h3>{{ s.nome }}</h3>
+          <p class="servico-preco">R$ {{ s.preco }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTATO -->
+  <section class="section" id="contato">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Onde estamos</span>
+        <h2 class="section-title">Venha nos <em>visitar</em></h2>
+      </div>
+      <div class="contato-grid">
+        <div class="contato-card">
+          <div class="contato-icon">◆</div>
+          <h3>Responsável</h3>
+          <p>Lú Manicure</p>
+        </div>
+        <div class="contato-card">
+          <div class="contato-icon">◆</div>
+          <h3>Endereço</h3>
+          <p>Rua Maria Aparecida Silva Pedro, nº 30<br>Santo Afonso — Porto Ferreira, SP</p>
+        </div>
+        <div class="contato-card">
+          <div class="contato-icon">◆</div>
+          <h3>Contato</h3>
+          <p>(19) 99673-3248<br></p>
+        </div>
+        <div class="contato-card">
+          <div class="contato-icon">◆</div>
+          <h3>Horário de atendimento</h3>
+          <p>Seg–Sex: 8h às 18h<br>Sábado: 8h às 17h</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-logo">
+          <span class="logo-diamond">◆</span>
+          <span>Lú Manicure</span>
+        </div>
+        <p class="footer-copy">© 2026 Lú Manicure. Todos os direitos reservados.</p>
+        <a href="/login" class="footer-admin-link">Área administrativa</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const dataInput = document.getElementById('data');
+    const horariosWrapper = document.getElementById('horarios-wrapper');
+    const horaHidden = document.getElementById('hora-hidden');
+
+    dataInput.addEventListener('change', async () => {
+      const data = dataInput.value;
+      if (!data) return;
+      horariosWrapper.innerHTML = '<p class="horario-hint">Buscando horários...</p>';
+      horaHidden.value = '';
+      const res = await fetch(`/horarios-disponiveis?data=${data}`);
+      const horarios = await res.json();
+      if (horarios.length === 0) {
+        horariosWrapper.innerHTML = '<p class="horario-hint sem-horario">Nenhum horário disponível nesta data.</p>';
+        return;
+      }
+      horariosWrapper.innerHTML = '<div class="horarios-btns"></div>';
+      const btns = horariosWrapper.querySelector('.horarios-btns');
+      horarios.forEach(h => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'horario-btn';
+        btn.textContent = h;
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.horario-btn').forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          horaHidden.value = h;
+        });
+        btns.appendChild(btn);
+      });
+    });
+
+    // Máscara de telefone
+    document.getElementById('telefone').addEventListener('input', function() {
+      let v = this.value.replace(/\D/g, '');
+      if (v.length <= 11) {
+        v = v.replace(/^(\d{2})(\d)/,'($1) $2');
+        v = v.replace(/(\d{4,5})(\d{4})$/,'$1-$2');
+      }
+      this.value = v;
+    });
+  </script>
+
+</body>
+</html>
