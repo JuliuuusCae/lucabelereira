@@ -1,23 +1,23 @@
 from flask_sqlalchemy import SQLAlchemy
 import os
- 
+
 db = SQLAlchemy()
- 
+
 def init_db(app):
     basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'database.db')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.init_app(app)
- 
+
     with app.app_context():
-        from models.models import Agendamento, Horario, Servico, Admin
+        from models.models import Agendamento, Horario, Servico, Admin, DiaSemana, DataBloqueada
         db.create_all()
         _seed_data()
- 
+
 def _seed_data():
-    from models.models import Servico, Horario, Admin
+    from models.models import Servico, Horario, Admin, DiaSemana
     from werkzeug.security import generate_password_hash
- 
+
     if not Servico.query.first():
         servicos = [
             ('Progressiva', 'a partir de 170,00'),
@@ -41,15 +41,19 @@ def _seed_data():
         ]
         for nome, preco in servicos:
             db.session.add(Servico(nome=nome, preco=preco))
- 
+
     if not Horario.query.first():
         horarios = ['08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00']
         for h in horarios:
             db.session.add(Horario(hora=h, ativo=True))
- 
+
     if not Admin.query.first():
         admin = Admin(username='admin', senha=generate_password_hash('admin123'))
         db.session.add(admin)
- 
+
+    # Seed dias da semana: seg a sab ativos por padrão, domingo inativo
+    if not DiaSemana.query.first():
+        for i in range(7):
+            db.session.add(DiaSemana(dia=i, ativo=(i != 6)))  # 6=domingo inativo
+
     db.session.commit()
- 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Lú Manicure — Painel Admin</title>
+  <title>Lu Cabelereira — Painel Admin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -14,13 +14,14 @@
     <div class="sidebar-logo">
       <span class="logo-diamond">◆</span>
       <div>
-        <span class="sidebar-title">Lú Manicure</span>
+        <span class="sidebar-title">Lu Cabelereira</span>
         <span class="sidebar-sub">Painel Admin</span>
       </div>
     </div>
     <nav class="sidebar-nav">
       <a href="#agendamentos" class="sidebar-link active">📋 Agendamentos</a>
       <a href="#horarios" class="sidebar-link">🕐 Horários</a>
+      <a href="#disponibilidade" class="sidebar-link">📅 Disponibilidade</a>
       <a href="#servicos" class="sidebar-link">💅 Serviços & Preços</a>
     </nav>
     <a href="/logout" class="sidebar-logout">Sair →</a>
@@ -56,19 +57,39 @@
               <th>Serviço</th>
               <th>Data</th>
               <th>Horário</th>
-              <th>Ação</th>
+              <th>Status</th>
+              <th>Ações</th>
             </tr>
           </thead>
           <tbody>
             {% for ag in agendamentos %}
-            <tr>
+            <tr {% if ag.bloqueado %}style="opacity:0.6"{% endif %}>
               <td class="td-id">{{ loop.index }}</td>
-              <td class="td-nome">{{ ag.nome }}</td>
+              <td class="td-nome">
+                {{ ag.nome }}
+                {% if ag.bloqueado %}<span class="tag-bloqueado">Bloqueado</span>{% endif %}
+              </td>
               <td>{{ ag.telefone }}</td>
               <td><span class="tag-servico">{{ ag.servico.nome }}</span></td>
               <td>{{ ag.data }}</td>
               <td><strong>{{ ag.hora }}</strong></td>
               <td>
+                {% if ag.bloqueado %}
+                  <span style="color:#ff4444;font-size:0.78rem;font-weight:600;">Faltou</span>
+                {% else %}
+                  <span style="color:#22c55e;font-size:0.78rem;font-weight:600;">Ativo</span>
+                {% endif %}
+              </td>
+              <td style="display:flex;gap:6px;flex-wrap:wrap;">
+                {% if not ag.bloqueado %}
+                <form action="/admin/agendamento/falta/{{ ag.id }}" method="POST" onsubmit="return confirm('Marcar como falta e bloquear cliente?')">
+                  <button type="submit" class="btn-toggle btn-off">Faltou</button>
+                </form>
+                {% else %}
+                <form action="/admin/agendamento/desbloquear/{{ ag.id }}" method="POST">
+                  <button type="submit" class="btn-toggle btn-on">Desbloquear</button>
+                </form>
+                {% endif %}
                 <form action="/admin/agendamento/delete/{{ ag.id }}" method="POST" onsubmit="return confirm('Remover este agendamento?')">
                   <button type="submit" class="btn-danger">Remover</button>
                 </form>
@@ -118,6 +139,56 @@
       </div>
     </section>
 
+    <!-- DISPONIBILIDADE -->
+    <section class="admin-section" id="disponibilidade">
+      <div class="admin-section-header">
+        <h2>📅 Disponibilidade</h2>
+      </div>
+
+      <!-- Dias da semana -->
+      <h3 class="subsection-title">Dias de atendimento</h3>
+      <div class="horarios-admin-grid" style="margin-bottom:32px;">
+        {% for d in dias_semana %}
+        <div class="horario-admin-card {% if not d.ativo %}inativo{% endif %}">
+          <span class="horario-hora" style="font-size:0.85rem;">{{ nomes_dias[d.dia] }}</span>
+          <form action="/admin/dia/toggle/{{ d.id }}" method="POST">
+            <button type="submit" class="btn-toggle {% if d.ativo %}btn-on{% else %}btn-off{% endif %}">
+              {{ 'Aberto' if d.ativo else 'Folga' }}
+            </button>
+          </form>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Datas bloqueadas -->
+      <h3 class="subsection-title">Bloquear data específica</h3>
+      <div class="add-card" style="margin-bottom:20px;">
+        <form action="/admin/data-bloqueada/add" method="POST" class="add-form">
+          <input type="date" name="data_bloquear" required />
+          <input type="text" name="motivo" placeholder="Motivo (opcional)" style="padding:10px 14px;border:1.5px solid var(--cinza-borda);border-radius:var(--radius-sm);font-family:'Poppins',sans-serif;font-size:0.85rem;outline:none;" />
+          <button type="submit" class="btn-primary">Bloquear</button>
+        </form>
+      </div>
+
+      {% if datas_bloqueadas %}
+      <div class="horarios-admin-grid">
+        {% for db in datas_bloqueadas %}
+        <div class="horario-admin-card inativo">
+          <div>
+            <span class="horario-hora" style="font-size:0.85rem;">{{ db.data }}</span>
+            {% if db.motivo %}<br><span style="font-size:0.72rem;color:var(--texto-light);">{{ db.motivo }}</span>{% endif %}
+          </div>
+          <form action="/admin/data-bloqueada/delete/{{ db.id }}" method="POST">
+            <button type="submit" class="btn-danger-sm">✕</button>
+          </form>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+        <p style="font-size:0.85rem;color:var(--texto-light);">Nenhuma data bloqueada.</p>
+      {% endif %}
+    </section>
+
     <!-- SERVIÇOS -->
     <section class="admin-section" id="servicos">
       <div class="admin-section-header">
@@ -143,7 +214,6 @@
   </main>
 
   <script>
-    // Sidebar active state
     const links = document.querySelectorAll('.sidebar-link');
     const sections = document.querySelectorAll('.admin-section');
     window.addEventListener('scroll', () => {

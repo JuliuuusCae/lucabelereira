@@ -615,6 +615,29 @@ em { font-style: italic; color: var(--rosa); }
   font-weight: 600;
 }
 
+/* ---- DISPONIBILIDADE ADMIN ---- */
+.subsection-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--texto-light);
+  margin-bottom: 14px;
+}
+.tag-bloqueado {
+  display: inline-block;
+  padding: 2px 8px;
+  background: #fff0f0;
+  border: 1px solid #ffcccc;
+  border-radius: 50px;
+  font-size: 0.7rem;
+  color: #ff4444;
+  font-weight: 600;
+  margin-left: 6px;
+  font-family: 'Poppins', sans-serif;
+}
+
 /* TABLE */
 .table-wrapper { overflow-x: auto; }
 .admin-table {
