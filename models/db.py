@@ -1,18 +1,39 @@
 from flask_sqlalchemy import SQLAlchemy
 import os
+import sqlite3
 
 db = SQLAlchemy()
 
 def init_db(app):
     basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'database.db')
+    db_path = os.path.join(basedir, 'database.db')
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_path
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.init_app(app)
 
     with app.app_context():
         from models.models import Agendamento, Horario, Servico, Admin, DiaSemana, DataBloqueada
         db.create_all()
+        _migrar_colunas(db_path)
         _seed_data()
+
+def _migrar_colunas(db_path):
+    """Adiciona colunas novas se não existirem no banco antigo."""
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+    # Verifica colunas existentes na tabela agendamentos
+    cursor.execute("PRAGMA table_info(agendamentos)")
+    colunas = [row[1] for row in cursor.fetchall()]
+
+    if 'compareceu' not in colunas:
+        cursor.execute("ALTER TABLE agendamentos ADD COLUMN compareceu INTEGER DEFAULT 0")
+
+    if 'bloqueado' not in colunas:
+        cursor.execute("ALTER TABLE agendamentos ADD COLUMN bloqueado INTEGER DEFAULT 0")
+
+    conn.commit()
+    conn.close()
 
 def _seed_data():
     from models.models import Servico, Horario, Admin, DiaSemana
@@ -51,9 +72,8 @@ def _seed_data():
         admin = Admin(username='admin', senha=generate_password_hash('admin123'))
         db.session.add(admin)
 
-    # Seed dias da semana: seg a sab ativos por padrão, domingo inativo
     if not DiaSemana.query.first():
         for i in range(7):
-            db.session.add(DiaSemana(dia=i, ativo=(i != 6)))  # 6=domingo inativo
+            db.session.add(DiaSemana(dia=i, ativo=(i != 6)))
 
     db.session.commit()
